@@ -1,82 +1,60 @@
-// import logo from './logo.svg';
-// import './App.css';
-
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.js</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Le
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
-
-// export default App;
-
 import React, { useState, useEffect } from 'react';
-import NavigationBar from './Components/NavigationBar';
-import FilterSearch from './Components/FilterSearch';
-import TransactionTable from './Components/TransactionTable';
-import TransactionForm from './Components/TransactionForm';
+import TransactionTable from './components/TransactionTable';
+import TransactionForm from './components/TransactionForm';
+import SearchBar from './components/SearchBar';
+
 
 const App = () => {
   const [transactions, setTransactions] = useState([]);
-  const [filteredTransactions, setFilteredTransactions] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch data from the local JSON database using native fetch API
-    fetch('http://localhost:3000/transactions')
+    fetch('http://localhost:8001/transactions')
       .then((response) => response.json())
       .then((data) => {
-        setTransactions(data);
-        setFilteredTransactions(data);
+        // if (Array.isArray(data.transactions)) {
+        //   setTransactions(data.transactions);
+        // }
+        setTransactions(data)
+        
+        setIsLoading(false);
       })
-      .catch((error) => console.error(error));
+      .catch((error) => {
+        console.error('Error fetching data:', error);
+        setIsLoading(false);
+      });
   }, []);
 
   const handleAddTransaction = (newTransaction) => {
-    // Add the newTransaction to the transactions state
-    setTransactions((prevTransactions) => [...prevTransactions, newTransaction]);
-    setFilteredTransactions((prevTransactions) => [...prevTransactions, newTransaction]);
+    newTransaction.id = Date.now();
+    setTransactions((prevTransactions) => prevTransactions.concat(newTransaction));
   };
 
   const handleSearch = (searchTerm) => {
-    // Filter transactions based on the search term
-    const filtered = transactions.filter(
-      (transaction) =>
-        transaction.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredTransactions(filtered);
+    setSearchTerm(searchTerm);
   };
 
-  const handleDeleteTransaction = (id) => {
-    // Delete the transaction with the given id
+  const handleDelete = (id) => {
     const updatedTransactions = transactions.filter((transaction) => transaction.id !== id);
     setTransactions(updatedTransactions);
-    setFilteredTransactions(updatedTransactions);
   };
 
+  // Apply search filter to transactions
+  const filteredTransactions = transactions.filter((transaction) =>
+    transaction.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div>
-      <NavigationBar />
+    <div className='App'>
       <h1>Bank Transactions</h1>
       <TransactionForm onAddTransaction={handleAddTransaction} />
-      <FilterSearch onSearch={handleSearch} />
-      <TransactionTable
-        transactions={filteredTransactions}
-        onDeleteTransaction={handleDeleteTransaction}
-      />
+      <SearchBar onSearch={handleSearch} />
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : (
+        <TransactionTable transactions={filteredTransactions} onDelete={handleDelete} />
+      )}
     </div>
   );
 };
