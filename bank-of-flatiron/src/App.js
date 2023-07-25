@@ -3,19 +3,18 @@ import TransactionTable from './components/TransactionTable';
 import TransactionForm from './components/TransactionForm';
 import SearchBar from './components/SearchBar';
 
-
+// this are the state variables
 const App = () => {
   const [transactions, setTransactions] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); //manages loading state of the application while data is being fetched
 
+  // fetches transactions from the server
   useEffect(() => {
     fetch('http://localhost:8001/transactions')
       .then((response) => response.json())
       .then((data) => {
-        // if (Array.isArray(data.transactions)) {
-        //   setTransactions(data.transactions);
-        // }
+        
         setTransactions(data)
         
         setIsLoading(false);
@@ -26,6 +25,7 @@ const App = () => {
       });
   }, []);
 
+  //this adds a new transaction the the list
   const handleAddTransaction = (newTransaction) => {
     newTransaction.id = Date.now();
     setTransactions((prevTransactions) => prevTransactions.concat(newTransaction));
@@ -47,7 +47,7 @@ const App = () => {
 
   return (
     <div className='App'>
-      <h1>Bank Transactions</h1>
+      <h1>Bank of Flatiron Transactions</h1>
       <TransactionForm onAddTransaction={handleAddTransaction} />
       <SearchBar onSearch={handleSearch} />
       {isLoading ? (
